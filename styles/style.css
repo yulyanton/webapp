@@ -45,6 +45,7 @@ body {
     font-size: 0.7em;
     color: white;
     margin-top: 2px;
+    margin-left: 36px;
 }
 .task-footer img {
     width: 9px;
@@ -61,10 +62,6 @@ body {
 .subtasks img {
     width: 20px;
     padding: 0px 3px;
-}
-
-.subtasks-footer {
-    margin-left: 36px;
 }
 
 .add-task {
