@@ -1,0 +1,86 @@
+body {
+    background-color: #D9D9D9;
+    font-family: Montserrat, sans-serif;
+    margin: 0;
+}
+
+.menu-icon {
+    position: relative;
+    top: 20px;
+    left: 20px;
+}
+
+.tasks {
+    display: flex;
+    flex-direction: column;
+    margin: 40px 20px;
+    height: max-content;
+    gap: 10px
+}
+
+.task-text {
+    text-align: left;
+}
+
+.task-container {
+    background-color: #BD7A7A;
+    padding: 10px;
+    border-radius: 10px;
+    gap: 10px;
+    filter: drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.25));
+}
+
+.task{
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.task-icon {
+    width: 26px;
+}
+.task-footer {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.7em;
+    color: white;
+    margin-top: 2px;
+}
+.task-footer img {
+    width: 9px;
+}
+
+.subtasks {
+    display: flex;
+    align-items: center;
+    font-size: 0.9em;
+    gap: 10px;
+    padding-top: 10px;
+}
+
+.subtasks img {
+    width: 20px;
+    padding: 0px 3px;
+}
+
+.subtasks-footer {
+    margin-left: 36px;
+}
+
+.add-task {
+    position: fixed;
+    bottom: 20px;
+    display: flex;
+    width: 100%;
+    justify-content: center;
+}
+
+.add-task button {
+    width: 53px;
+    height: 53px;
+    padding: 10px;
+    border: none;
+    border-radius: 99999px;
+    background: #BD7A7A url("./../assets/icons/plus.svg") no-repeat center;
+    filter: drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.25));
+}
