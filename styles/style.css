@@ -1,5 +1,5 @@
 body {
-    background-color: #D9D9D9;
+    background-color: #242424;
     font-family: Montserrat, sans-serif;
     margin: 0;
 }
@@ -20,10 +20,11 @@ body {
 
 .task-text {
     text-align: left;
+    color: #D5D5D5
 }
 
 .task-container {
-    background-color: #BD7A7A;
+    background-color: #3A3A3A;
     padding: 10px;
     border-radius: 10px;
     gap: 10px;
@@ -34,6 +35,7 @@ body {
     display: flex;
     gap: 10px;
     align-items: center;
+    color: #D5D5D5
 }
 
 .task-icon {
@@ -43,7 +45,7 @@ body {
     display: flex;
     justify-content: space-between;
     font-size: 0.7em;
-    color: white;
+    color: #D5D5D5;
     margin-top: 2px;
     margin-left: 36px;
 }
@@ -78,6 +80,6 @@ body {
     padding: 10px;
     border: none;
     border-radius: 99999px;
-    background: #BD7A7A url("./../assets/icons/plus.svg") no-repeat center;
+    background: #3A3A3A url("./../assets/icons/plus.svg") no-repeat center;
     filter: drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.25));
 }
