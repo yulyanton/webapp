@@ -10,7 +10,7 @@ from aiogram.filters import CommandStart
 BOT_TOKEN = "7803228193:AAFzjKmwh9fnQvnHzhWZsT6ZIspqQVACDvM"
 
 # URL вашего Flask-приложения (где оно будет доступно)
-WEB_APP_URL = "https://898b-89-169-54-148.ngrok-free.app/"  # Например, "https://yourdomain.com" или "http://localhost:5000"
+WEB_APP_URL = "https://6d17-89-169-54-148.ngrok-free.app/"  # Например, "https://yourdomain.com" или "http://localhost:5000"
 
 # Настройка логирования
 logging.basicConfig(level=logging.INFO)
