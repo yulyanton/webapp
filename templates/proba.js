@@ -1,7 +1,7 @@
 // Wait until the HTML document is fully loaded and parsed
 document.addEventListener('DOMContentLoaded', () => {
 
-    // --- Data from Backend (simulated with refined structure) ---
+    // --- Data from Backend (simulated) ---
     let notions = [
       {
         text: 'Позвонить в сервис',
@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
         subtasksVisible: true
       },
       {
-        text: 'Купить продукты',
+        text: 'Купить продукты', // Changed example text
         date: 'ср 10.04',
         paragraphs: [
             { text: 'Молоко', completed: false },
@@ -27,14 +27,14 @@ document.addEventListener('DOMContentLoaded', () => {
       {
         text: 'Закончить отчет "Альфа"',
         date: 'пт 12.04',
-        paragraphs: [], // Пустые подзадачи
+        paragraphs: [], // Empty subtasks
         status: true,
-        subtasksVisible: true
+        subtasksVisible: true // This property doesn't have much effect when paragraphs is empty
       },
       {
         text: 'Записаться к врачу',
         date: 'пн 15.04',
-        paragraphs: [], // Пустые подзадачи
+        paragraphs: [], // Empty subtasks
         status: false,
         subtasksVisible: true
       }
@@ -43,55 +43,33 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- DOM Elements ---
     const tasksListContainer = document.querySelector('.tasks');
     const addTaskButton = document.querySelector('.add-task button');
-    const menuIcon = document.querySelector('.menu-icon'); // Element selected, but no listener
+    // const menuIcon = document.querySelector('.menu-icon'); // No functionality currently attached
 
-    // --- Constants for Icons (Paths relative to index.html) ---
+    // --- Constants for Icons ---
     const ICON_TASK = '../assets/icons/task.svg';
-    const ICON_TASK_DONE = '../assets/icons/task-completed.svg'; // Updated path
+    const ICON_TASK_DONE = '../assets/icons/task-completed.svg';
     const ICON_PLUS = '../assets/icons/plus.svg';
     const ICON_MINUS = '../assets/icons/minus.svg';
-
-    // --- Dynamically Inject CSS for Completed State ---
-    function injectStyles() {
-        const styleSheet = document.styleSheets[0];
-        let ruleExists = false;
-        const rule1Selector = '.task-container.completed .task-text, .subtasks.completed > span';
-        const rule2Selector = '.task-container.completed';
-        try {
-            for(let i=0; i<styleSheet.cssRules.length; i++) {
-                if(styleSheet.cssRules[i].selectorText === rule1Selector) {
-                    ruleExists = true;
-                    break;
-                }
-            }
-        } catch (e) { console.warn("Could not access CSS rules to check for 'completed' style."); }
-
-        if (!ruleExists) {
-            try {
-                styleSheet.insertRule(`${rule1Selector} { text-decoration: line-through; opacity: 0.6; }`, styleSheet.cssRules.length);
-                styleSheet.insertRule(`${rule2Selector} { background-color: #303030 !important; filter: drop-shadow(0px 2px 2px rgba(0, 0, 0, 0.2)) !important; }`, styleSheet.cssRules.length);
-                styleSheet.insertRule(`.task-container.completed .task-icon, .subtasks.completed > img:first-of-type { opacity: 0.6; }`, styleSheet.cssRules.length);
-            } catch (e) { console.error("Could not insert CSS rules for completed state.", e); }
-        }
-    }
-    injectStyles();
 
     // --- Event Delegation for Task Interactions ---
     tasksListContainer.addEventListener('click', (event) => {
         const target = event.target;
+        // Find the closest ancestor which is a task container or a subtask element
         const taskContainer = target.closest('.task-container');
-        if (!taskContainer) return;
+        if (!taskContainer) return; // Click wasn't inside a task container
 
         const taskIndex = parseInt(taskContainer.dataset.taskIndex, 10);
-        if (isNaN(taskIndex)) return;
+        if (isNaN(taskIndex)) return; // Should not happen if data-task-index is always set
 
         const action = target.dataset.action;
+        if (!action) return; // Clicked element doesn't have a data-action
 
         switch (action) {
             case 'toggle-task':
                 toggleTaskComplete(taskIndex);
                 break;
             case 'edit-task':
+                // Prevent re-triggering edit if already editing (input exists)
                 if (!target.querySelector('input.edit-input')) {
                     makeEditable(target, taskIndex, null, 'text');
                 }
@@ -102,60 +80,48 @@ document.addEventListener('DOMContentLoaded', () => {
                     const paragraphIndex = parseInt(subtaskDiv.dataset.paragraphIndex, 10);
                     if (!isNaN(paragraphIndex)) {
                         toggleSubtaskComplete(taskIndex, paragraphIndex);
-                        // После изменения подзадачи, проверяем статус родителя (если есть авто-статус)
-                        // checkAndUpdateParentStatus(taskIndex); // Раскомментируйте, если нужна логика авто-статуса
-                        // renderTasks(); // Перерисовываем, чтобы обновить UI
+                        // Optional: Update parent status based on children completion
+                        // checkAndUpdateParentStatus(taskIndex);
                     }
                 }
                 break;
             }
             case 'edit-subtask': {
                 const subtaskDiv = target.closest('.subtasks');
+                // Prevent re-triggering edit if already editing
                 if (subtaskDiv && !target.querySelector('input.edit-input')) {
                     const paragraphIndex = parseInt(subtaskDiv.dataset.paragraphIndex, 10);
                     if (!isNaN(paragraphIndex)) {
+                        // target should be the span containing the text
                         makeEditable(target, taskIndex, paragraphIndex, 'text');
                     }
                 }
                 break;
             }
-            case 'toggle-subtasks': // Footer icon click
-                 // Эта функция сама разберется, добавлять или сворачивать/разворачивать
-                handleFooterIconClick(taskIndex);
+            case 'toggle-subtasks': // Footer icon click (only exists if paragraphs.length > 0)
+                toggleSubtasksVisibility(taskIndex);
                 break;
         }
     });
 
-    // --- Function to Handle Footer Icon Click ---
-    // Эта функция вызывается ТОЛЬКО если иконка была добавлена (т.е. paragraphs.length > 0)
-    // ИЛИ если пользователь КЛИКНУЛ на иконку [+] у задачи без подзадач (в старой версии кода)
-    // В НОВОЙ ВЕРСИИ эта функция будет вызвана ТОЛЬКО для задач с подзадачами.
-    function handleFooterIconClick(taskIndex) {
+    // --- Function to Toggle Subtask Visibility ---
+    function toggleSubtasksVisibility(taskIndex) {
         const notion = notions[taskIndex];
-        if (!notion) return;
-
-        // Проверка на пустой массив здесь больше не нужна, т.к. иконка не будет создана
-        // Но оставим ее для надежности, если вдруг вызовется в нештатной ситуации
-        if (!notion.paragraphs || notion.paragraphs.length === 0) {
-             // Этого не должно произойти с новой логикой createTaskElement
-             console.warn("handleFooterIconClick called for task without paragraphs.");
-             // Можно все равно попробовать добавить подзадачу, как раньше
-             // addSubtask(taskIndex);
-             return;
+        // This function is only called if the icon exists, which means paragraphs exist.
+        if (notion && notion.paragraphs && notion.paragraphs.length > 0) {
+            notion.subtasksVisible = !notion.subtasksVisible;
+            renderTasks(); // Redraw to show/hide subtasks and update +/- icon
+        } else {
+             console.warn("toggleSubtasksVisibility called unexpectedly for task without subtasks or invalid index:", taskIndex);
         }
-
-        // Если подзадачи есть, просто переключаем видимость
-        notion.subtasksVisible = !notion.subtasksVisible;
-        renderTasks(); // Перерисовываем, чтобы показать/скрыть и сменить иконку +/-
     }
 
 
-    // --- Function to Create a Single Task Element (Matching Original CSS) ---
+    // --- Function to Create a Single Task Element ---
     function createTaskElement(notion, index) {
         const taskContainer = document.createElement('div');
         taskContainer.className = 'task-container';
         taskContainer.dataset.taskIndex = index;
-
         if (notion.status) {
             taskContainer.classList.add('completed');
         }
@@ -167,9 +133,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const taskIcon = document.createElement('img');
         taskIcon.className = 'task-icon';
         taskIcon.src = notion.status ? ICON_TASK_DONE : ICON_TASK;
-        taskIcon.alt = notion.status ? 'Отмечено' : 'Отметить';
-        taskIcon.style.cursor = 'pointer';
-        taskIcon.dataset.action = 'toggle-task';
+        taskIcon.alt = notion.status ? 'Выполнено' : 'Отметить как выполненное'; // Improved alt text
+        taskIcon.dataset.action = 'toggle-task'; // Action on the icon
 
         const taskBody = document.createElement('div');
         taskBody.className = 'task-body';
@@ -177,35 +142,32 @@ document.addEventListener('DOMContentLoaded', () => {
         const taskText = document.createElement('span');
         taskText.className = 'task-text';
         taskText.textContent = notion.text;
-        taskText.style.cursor = 'pointer';
-        taskText.dataset.action = 'edit-task';
+        taskText.dataset.action = 'edit-task'; // Action on the text
 
         taskBody.appendChild(taskText);
         taskDiv.appendChild(taskIcon);
         taskDiv.appendChild(taskBody);
         taskContainer.appendChild(taskDiv);
 
-        // --- Subtasks Block (conditionally visible, one div per subtask) ---
-        if (notion.paragraphs && notion.paragraphs.length > 0 && notion.subtasksVisible) {
+        // --- Subtasks Block (Conditionally Rendered) ---
+        const hasSubtasks = notion.paragraphs && notion.paragraphs.length > 0;
+        if (hasSubtasks && notion.subtasksVisible) {
             notion.paragraphs.forEach((paragraph, pIndex) => {
                 const subtasksDiv = document.createElement('div');
                 subtasksDiv.className = 'subtasks';
                 subtasksDiv.dataset.paragraphIndex = pIndex;
-
                 if (paragraph.completed) {
                     subtasksDiv.classList.add('completed');
                 }
 
                 const subtaskIcon = document.createElement('img');
                 subtaskIcon.src = paragraph.completed ? ICON_TASK_DONE : ICON_TASK;
-                subtaskIcon.alt = paragraph.completed ? 'Отмечено' : 'Отметить';
-                subtaskIcon.style.cursor = 'pointer';
-                subtaskIcon.dataset.action = 'toggle-subtask';
+                subtaskIcon.alt = paragraph.completed ? 'Выполнено' : 'Отметить как выполненное';
+                subtaskIcon.dataset.action = 'toggle-subtask'; // Action on subtask icon
 
                 const subtaskText = document.createElement('span');
                 subtaskText.textContent = paragraph.text;
-                subtaskText.style.cursor = 'pointer';
-                subtaskText.dataset.action = 'edit-subtask';
+                subtaskText.dataset.action = 'edit-subtask'; // Action on subtask text
 
                 subtasksDiv.appendChild(subtaskIcon);
                 subtasksDiv.appendChild(subtaskText);
@@ -213,106 +175,141 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        // --- Task Footer Block --- ИЗМЕНЕННЫЙ БЛОК ---
+        // --- Task Footer Block ---
         const taskFooter = document.createElement('div');
         taskFooter.className = 'task-footer';
 
-        // Дата и прогресс всегда отображаются
+        // Date and Progress
         const taskDateSpan = document.createElement('span');
         taskDateSpan.className = 'task-date';
         const completedSubtasks = notion.paragraphs?.filter(p => p.completed).length || 0;
         const totalSubtasks = notion.paragraphs?.length || 0;
-        const progressText = totalSubtasks > 0 ? ` ${completedSubtasks} из ${totalSubtasks}` : '';
-        taskDateSpan.textContent = (notion.date || 'Нет даты') + progressText;
-        taskFooter.appendChild(taskDateSpan); // Добавляем дату
+        const progressText = totalSubtasks > 0 ? ` (${completedSubtasks}/${totalSubtasks})` : ''; // Changed format
+        taskDateSpan.textContent = (notion.date || 'Без даты') + progressText;
+        taskFooter.appendChild(taskDateSpan);
 
-        // Добавляем иконку [+] или [-] ТОЛЬКО если есть подзадачи
-        if (totalSubtasks > 0) {
-            const footerIcon = document.createElement('img'); // Создаем иконку ВНУТРИ условия
+        // Toggle Icon (only if subtasks exist)
+        if (hasSubtasks) {
+            const footerIcon = document.createElement('img');
             footerIcon.src = notion.subtasksVisible ? ICON_MINUS : ICON_PLUS;
             footerIcon.alt = notion.subtasksVisible ? 'Свернуть подзадачи' : 'Развернуть подзадачи';
-            footerIcon.style.cursor = 'pointer';
-            footerIcon.dataset.action = 'toggle-subtasks'; // Действие для сворачивания/разворачивания
-            taskFooter.appendChild(footerIcon); // Добавляем иконку ВНУТРИ условия
+            footerIcon.dataset.action = 'toggle-subtasks'; // Action on footer icon
+            taskFooter.appendChild(footerIcon);
         }
-        // Если totalSubtasks === 0, иконка не создается и не добавляется
+        // If no subtasks, the footer will just have the date/empty progress
 
-        taskContainer.appendChild(taskFooter); // Футер добавляется всегда
+        taskContainer.appendChild(taskFooter);
 
         return taskContainer;
     }
 
 
     // --- Function to make an element editable ---
-    function makeEditable(element, taskIndex, paragraphIndex, propertyKey) {
-        const originalText = element.textContent;
-        const isSubtask = paragraphIndex !== null;
-        const placeholder = isSubtask ? "Подзадача" : "Задача";
-        element.innerHTML = '';
+    // proba.js
 
-        const input = document.createElement('input');
-        input.type = 'text';
-        input.value = originalText;
-        input.className = 'edit-input';
-        input.style.width = 'calc(100% - 8px)';
-        input.style.boxSizing = 'border-box';
-        input.style.backgroundColor = '#555';
-        input.style.color = '#eee';
-        input.style.border = '1px solid #777';
-        input.style.padding = '1px 3px';
-        input.style.fontFamily = 'inherit';
-        input.style.fontSize = 'inherit';
-        input.style.outline = 'none';
+// --- Function to make an element editable ---
+function makeEditable(element, taskIndex, paragraphIndex, propertyKey) {
+    const originalText = element.textContent;
+    const isSubtask = paragraphIndex !== null;
+    const placeholder = isSubtask ? "Подзадача..." : "Задача...";
+    element.innerHTML = '';
 
-        const saveChanges = () => {
-            const newText = input.value.trim() || placeholder;
-            if (newText !== originalText) {
-                if (isSubtask) {
-                    // Обновляем текст подзадачи в массиве notions
-                    notions[taskIndex].paragraphs[paragraphIndex][propertyKey] = newText;
-                } else {
-                    // Обновляем текст основной задачи в массиве notions
-                    notions[taskIndex][propertyKey] = newText;
-                }
-                console.log('Updated notions:', notions); // Показываем обновленный массив
-                element.textContent = newText; // Обновляем текст в HTML
-                // renderTasks(); // НЕ вызываем полный рендер здесь, чтобы не прерывать ввод
-            } else {
-                element.textContent = originalText; // Восстанавливаем, если не изменилось
-            }
-             input.removeEventListener('blur', saveChanges);
-             input.removeEventListener('keydown', handleKeyDown);
-             // Безопасное удаление input
-             if (element && element.contains(input)) {
-                try { element.removeChild(input); } catch(e) {}
+    const textarea = document.createElement('textarea');
+    textarea.value = originalText;
+    textarea.className = 'edit-input';
+    textarea.placeholder = placeholder;
+    // textarea.rows = 1; // rows больше не нужен, высота управляется JS
+
+    let hasSaved = false;
+
+    // --- Функция авто-изменения размера ---
+    const resizeTextarea = () => {
+        // Сначала получаем реальные стили, чтобы точно рассчитать высоту строки и макс высоту
+        const computedStyle = window.getComputedStyle(textarea);
+        const lineHeight = parseFloat(computedStyle.lineHeight);
+        const paddingTop = parseFloat(computedStyle.paddingTop);
+        const paddingBottom = parseFloat(computedStyle.paddingBottom);
+        const borderTopWidth = parseFloat(computedStyle.borderTopWidth);
+        const borderBottomWidth = parseFloat(computedStyle.borderBottomWidth);
+
+        // Рассчитываем максимальную высоту в пикселях (~6 строк)
+        const maxHeight = (lineHeight * 6) + paddingTop + paddingBottom + borderTopWidth + borderBottomWidth;
+
+        // Сбрасываем высоту для корректного измерения scrollHeight
+        textarea.style.height = 'auto'; // или '1px'
+
+        const scrollHeight = textarea.scrollHeight;
+
+        // Применяем высоту
+        if (scrollHeight <= maxHeight) {
+            textarea.style.height = scrollHeight + 'px';
+            textarea.style.overflowY = 'hidden'; // Скроллбар не нужен
+        } else {
+            textarea.style.height = maxHeight + 'px';
+            textarea.style.overflowY = 'scroll'; // Показываем скроллбар
+        }
+    };
+    // --------------------------------------
+
+    const saveChanges = () => {
+        // ... (код saveChanges остается без изменений) ...
+        if (hasSaved) return;
+        hasSaved = true;
+        const newText = textarea.value.trim() || (isSubtask ? "Подзадача" : "Задача");
+        if (newText !== originalText) {
+             if (isSubtask) {
+                 notions[taskIndex].paragraphs[paragraphIndex][propertyKey] = newText;
+             } else {
+                 notions[taskIndex][propertyKey] = newText;
              }
-             // Восстанавливаем текст, если элемент остался пустым
-             if (element && !element.textContent) {
-                 element.textContent = originalText;
-             }
-        };
+             element.textContent = newText; // Помним про white-space: pre-wrap в CSS для span
+             console.log('Updated notions:', notions);
+        } else {
+             element.textContent = originalText;
+        }
+        cleanup();
+    };
 
-        const handleKeyDown = (e) => {
-            if (e.key === 'Enter') {
-                input.blur(); // Сохраняем по Enter
-            } else if (e.key === 'Escape') {
-                 element.textContent = originalText; // Отмена по Escape
-                 // Удаляем обработчики и input
-                 input.removeEventListener('blur', saveChanges);
-                 input.removeEventListener('keydown', handleKeyDown);
-                 if (element && element.contains(input)) {
-                    try { element.removeChild(input); } catch(e) {}
-                 }
-            }
-        };
+    const cancelChanges = () => {
+        // ... (код cancelChanges остается без изменений) ...
+        element.textContent = originalText;
+        cleanup();
+    };
 
-        input.addEventListener('blur', saveChanges, { once: true });
-        input.addEventListener('keydown', handleKeyDown);
+    const handleKeyDown = (e) => {
+        // ... (код handleKeyDown остается без изменений, Enter не сохраняет) ...
+        if (e.key === 'Escape') {
+            cancelChanges();
+        }
+    };
 
-        element.appendChild(input);
-        input.focus();
-        input.select();
-    }
+    const cleanup = () => {
+        // !!! Удаляем обработчик 'input' !!!
+        textarea.removeEventListener('input', resizeTextarea);
+        textarea.removeEventListener('blur', saveChanges);
+        textarea.removeEventListener('keydown', handleKeyDown);
+        if (element && element.contains(textarea)) {
+            try { element.removeChild(textarea); } catch (e) { /* Ignore */ }
+        }
+        if (element && !element.textContent) {
+            element.textContent = originalText;
+        }
+    };
+
+    // Добавляем обработчики
+    // !!! Добавляем обработчик 'input' для авто-ресайза !!!
+    textarea.addEventListener('input', resizeTextarea);
+    textarea.addEventListener('blur', saveChanges);
+    textarea.addEventListener('keydown', handleKeyDown);
+
+    element.appendChild(textarea);
+
+    // !!! Вызываем resizeTextarea сразу после добавления для установки начальной высоты !!!
+    resizeTextarea();
+
+    textarea.focus();
+    textarea.setSelectionRange(originalText.length, originalText.length);
+}
 
     // --- Data Manipulation Functions ---
 
@@ -320,11 +317,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const notion = notions[taskIndex];
         if (notion) {
             notion.status = !notion.status;
-            // Если есть подзадачи, возможно, нужно обновить и их статус? (Зависит от логики)
-            // if (notion.paragraphs && notion.paragraphs.length > 0) {
-            //     notion.paragraphs.forEach(p => p.completed = notion.status);
-            // }
-            renderTasks(); // Перерисовываем для обновления UI
+            // Optional: Sync subtask completion state? Depends on desired logic.
+            if (notion.paragraphs) {
+               notion.paragraphs.forEach(p => p.completed = notion.status);
+            }
+            renderTasks(); // Redraw to update UI
         }
     }
 
@@ -332,91 +329,100 @@ document.addEventListener('DOMContentLoaded', () => {
         const paragraph = notions[taskIndex]?.paragraphs?.[paragraphIndex];
         if (paragraph) {
             paragraph.completed = !paragraph.completed;
-            // Возможно, нужно обновить статус родителя, если все подзадачи выполнены?
-            // checkAndUpdateParentStatus(taskIndex); // Раскомментируйте, если нужна эта логика
-            renderTasks(); 
+            // Optional: Update parent status based on children completion
+            // checkAndUpdateParentStatus(taskIndex);
+            renderTasks(); // Redraw needed to update parent footer progress
         }
     }
 
-     function addSubtask(taskIndex) {
+    // Note: addSubtask function exists but is not directly triggered by the default UI
+    // It could be wired to a new button or context menu in the future.
+    function addSubtask(taskIndex) {
         const notion = notions[taskIndex];
         if (notion) {
              const newSubtask = { text: 'Новая подзадача', completed: false };
-             // Убедимся, что массив paragraphs существует
              if (!notion.paragraphs) {
-                 notion.paragraphs = [];
+                 notion.paragraphs = []; // Initialize if it doesn't exist
              }
              notion.paragraphs.push(newSubtask);
-             notion.subtasksVisible = true; // Показать подзадачи при добавлении
-             // Возможно, нужно обновить статус родителя
+             notion.subtasksVisible = true; // Ensure subtasks are visible when adding
+             // Optional: Update parent status (e.g., uncomplete parent if adding a task)
+             // notion.status = false;
              // checkAndUpdateParentStatus(taskIndex);
-             renderTasks(); // Перерисовать, чтобы показать новую подзадачу и иконку [-]
+             renderTasks();
 
-             // --- Логика для фокуса на новой подзадаче ---
-             // Используем setTimeout, чтобы DOM успел обновиться после renderTasks
+             // Focus the newly added subtask for immediate editing
              setTimeout(() => {
                  const taskContainer = tasksListContainer.querySelector(`[data-task-index="${taskIndex}"]`);
-                 // Ищем последнюю подзадачу
-                 const subtaskElements = taskContainer?.querySelectorAll('.subtasks');
+                 const subtaskElements = taskContainer?.querySelectorAll('.subtasks'); // Get all subtask divs
                  if(subtaskElements && subtaskElements.length > 0) {
-                     const lastSubtaskElement = subtaskElements[subtaskElements.length - 1];
-                     const newSubtaskIndex = parseInt(lastSubtaskElement.dataset.paragraphIndex, 10); // Получаем реальный индекс
-                     const newSubtaskTextElement = lastSubtaskElement.querySelector('span');
+                     const lastSubtaskElement = subtaskElements[subtaskElements.length - 1]; // Target the last one
+                     const newSubtaskIndex = parseInt(lastSubtaskElement.dataset.paragraphIndex, 10);
+                     const newSubtaskTextElement = lastSubtaskElement.querySelector('span[data-action="edit-subtask"]'); // Target the text span
                       if (newSubtaskTextElement && !isNaN(newSubtaskIndex)) {
-                          console.log(`Focusing subtask ${newSubtaskIndex} in task ${taskIndex}`);
+                          console.log(`Focusing new subtask ${newSubtaskIndex} in task ${taskIndex}`);
                           makeEditable(newSubtaskTextElement, taskIndex, newSubtaskIndex, 'text');
                       }
                  }
-             }, 0); // Запускаем после текущего цикла событий
+             }, 0); // Delay ensures DOM is updated after renderTasks
         }
     }
 
     function addNewTask() {
         const newTask = {
-            text: 'Новая задача',
-            date: new Date().toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' }),
-            paragraphs: [], // Новая задача без подзадач
+            text: 'Новая задача', // Default text
+            date: new Date().toLocaleDateString('ru-RU', { weekday: 'short', day: '2-digit', month: '2-digit' }), // Formatted date
+            paragraphs: [],
             status: false,
-            subtasksVisible: true // Не имеет значения, т.к. paragraphs пуст
+            subtasksVisible: true // Doesn't matter visually until paragraphs are added
         };
+        // Add to the beginning or end? Let's add to the end for now.
         notions.push(newTask);
-        renderTasks(); // Перерисовываем, новая задача появится без иконки +/-
+        const newTaskIndex = notions.length - 1; // Get index *before* rendering
 
-        // --- Логика фокуса ---
+        renderTasks(); // Redraw list with the new task
+
+        // Focus the new task for immediate editing
         setTimeout(() => {
-            const newTaskIndex = notions.length - 1;
             const newTaskElement = tasksListContainer.querySelector(`[data-task-index="${newTaskIndex}"]`);
             if (newTaskElement) {
-                newTaskElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); // Изменено на nearest
-                const newTaskTextElement = newTaskElement.querySelector('.task-text');
+                // Scroll into view smoothly
+                newTaskElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                const newTaskTextElement = newTaskElement.querySelector('.task-text[data-action="edit-task"]');
                 if (newTaskTextElement) {
                     makeEditable(newTaskTextElement, newTaskIndex, null, 'text');
                 }
             }
-        }, 0);
+        }, 50); // Small delay might help ensure scrollIntoView works after render
     }
 
     // --- Function to Render All Tasks ---
     function renderTasks() {
-        const currentScroll = window.scrollY; // Сохраняем прокрутку
-        tasksListContainer.innerHTML = ''; // Clear
+        // Preserve scroll position to avoid jarring jumps during re-render
+        const scrollY = window.scrollY;
+
+        tasksListContainer.innerHTML = ''; // Clear previous tasks
 
         if (notions.length === 0) {
+             // Display a message if there are no tasks
              tasksListContainer.innerHTML = '<p style="color: #888; text-align: center; margin-top: 50px;">Задач пока нет. Нажмите "+" чтобы добавить.</p>';
         } else {
-            // Перед рендером можно проверить консистентность статусов (если нужна авто-логика)
+            // Optional: Update parent statuses before rendering if needed
             // notions.forEach((_, index) => checkAndUpdateParentStatus(index));
 
+            // Create and append each task element
             notions.forEach((notion, index) => {
                 const taskElement = createTaskElement(notion, index);
                 tasksListContainer.appendChild(taskElement);
             });
         }
-        window.scrollTo(0, currentScroll); // Восстанавливаем прокрутку
+
+        // Restore scroll position
+        window.scrollTo(0, scrollY);
     }
 
     // --- Initial Rendering ---
-    renderTasks(); // Первый рендер при загрузке
+    renderTasks(); // Render tasks when the page loads
 
     // --- Add Event Listeners ---
     if (addTaskButton) {
