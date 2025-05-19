@@ -1,0 +1,8 @@
+fastapi
+uvicorn[standard]
+motor
+pydantic
+pydantic-settings
+python-dotenv
+# bson или python-bson обычно идет с motor/pymongo, но можно указать явно, если нужно
+# python-bson 
