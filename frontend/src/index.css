@@ -1,0 +1,218 @@
+/* General Styles */
+::-webkit-scrollbar {
+  width: 0;
+}
+body {
+  background-color: #242424;
+  font-family: 'Montserrat', sans-serif; /* Ensure Montserrat is loaded or use a fallback */
+  margin: 0;
+  color: #D5D5D5; /* Default text color */
+}
+
+/* Menu Icon (positioning only) */
+.menu-icon {
+  position: absolute; /* Changed to absolute for better control */
+  top: 20px;
+  left: 20px;
+  z-index: 10; /* Ensure it's above tasks if they overlap */
+  cursor: pointer; /* Indicate it might be clickable */
+}
+
+/* Tasks Container */
+.tasks {
+  display: flex;
+  flex-direction: column;
+  margin: 80px 20px 80px 25px; /* Adjusted top/bottom margin for menu/add button */
+  gap: 12px; /* Slightly increased gap */
+}
+
+/* Individual Task Container */
+.task-container {
+  background-color: #3A3A3A;
+  padding: 12px 15px; /* Adjusted padding */
+  border-radius: 10px;
+  box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25); /* Replaced filter with box-shadow */
+  transition: background-color 0.3s ease, box-shadow 0.3s ease; /* Smooth transition */
+}
+
+/* Main Task Row */
+.task {
+  display: flex;
+  gap: 12px; /* Adjusted gap */
+  align-items: center; /* Align items to the start */
+}
+
+.task-icon {
+  width: 24px; /* Slightly adjusted size */
+  height: 24px;
+  margin-top: 1px; /* Fine-tune vertical alignment */
+  cursor: pointer;
+  transition: opacity 0.3s ease;
+}
+.task-icon:hover {
+  opacity: 0.8;
+}
+
+.task-body {
+  flex-grow: 1; /* Allow text body to take available space */
+  min-width: 0;
+}
+.task-text {
+  display: inline-block; /* Позволяет применять свойства блочных элементов и обтекание */
+  cursor: pointer;
+  line-height: 1.4; /* Improve readability */
+  /* !!! Добавьте эти свойства для переноса текста !!! */
+  overflow-wrap: break-word;   /* Стандартное свойство для переноса */
+  word-wrap: break-word;       /* Псевдоним для совместимости */
+  word-break: break-word;    /* Дополнительное правило для корректных переносов */
+  /* Можно добавить автоматические переносы по слогам для лучшего вида (поддержка зависит от браузера и языка) */
+  -webkit-hyphens: auto;
+  -moz-hyphens: auto;
+  hyphens: auto;
+  cursor: pointer;
+  line-height: 1.4; /* Improve readability */
+  width: 100%;
+}
+.task-text:hover {
+  opacity: 0.8;
+}
+
+
+/* Subtasks */
+.subtasks {
+  display: flex;
+  align-items: center;
+  font-size: 0.9em;
+  gap: 10px;
+  padding-top: 8px; /* Reduced top padding */
+  margin-left: 36px; /* Indent subtasks (24px icon + 12px gap) */
+  color: #D5D5D5;
+  transition: opacity 0.3s ease; /* Smooth transition */
+}
+
+.subtasks img {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  transition: opacity 0.3s ease;
+}
+.subtasks img:hover {
+  opacity: 0.8;
+}
+
+.subtasks span {
+  cursor: pointer;
+  flex-grow: 1;
+}
+.subtasks span:hover {
+  opacity: 0.8;
+}
+
+/* Task Footer */
+.task-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center; /* Vertically align items */
+  font-size: 0.75em; /* Slightly larger */
+  color: #B0B0B0; /* Slightly lighter grey */
+  margin-top: 8px; /* Adjusted margin */
+  margin-left: 36px; /* Align with subtasks */
+  min-height: 12px; /* Ensure footer takes space even if icon is hidden */
+}
+
+.task-footer img {
+  width: 12px; /* Increased size slightly */
+  height: 12px;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+}
+.task-footer img:hover {
+  opacity: 1.0;
+}
+
+/* Add Task Button */
+.add-task {
+  position: fixed;
+  bottom: 25px; /* Adjusted position */
+  left: 0; /* Ensure it spans width */
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  z-index: 20; /* Ensure it's above content */
+}
+
+.add-task button {
+  width: 55px; /* Slightly larger */
+  height: 55px;
+  padding: 0; /* Remove padding, rely on size and background */
+  border: none;
+  border-radius: 50%; /* Perfect circle */
+  background: #4A4A4A url("../public/assets/icons/plus.svg") no-repeat center; /* Slightly lighter bg */
+  background-size: 24px 24px; /* Control icon size */
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.3); /* Enhanced shadow */
+  cursor: pointer;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.add-task button:hover {
+  background-color: #555555;
+  box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.35);
+}
+
+.add-task button:active {
+  background-color: #606060;
+  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+
+/* --- Styles previously injected by JS --- */
+
+/* Completed Task/Subtask Styling */
+.task-container.completed {
+  background-color: #303030; /* Keep this specific override */
+  box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.2); /* Keep this specific override */
+}
+
+.task-container.completed .task-text,
+.subtasks.completed > span {
+  text-decoration: line-through;
+  opacity: 0.6;
+}
+
+.task-container.completed .task-icon,
+.subtasks.completed > img:first-of-type {
+  opacity: 0.6;
+}
+
+/* Editing Input Field */
+/* style.css */
+/* ... (предыдущие стили) ... */
+
+/* Editing Input Field (теперь это textarea) */
+.edit-input {
+  width: 100%;
+  box-sizing: border-box;
+  background-color: #555;
+  color: #eee;
+  border: 1px solid #777;
+  padding: 2px 4px;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: 1.4; /* Остается важным для расчетов */
+  border-radius: 3px;
+  outline: none;
+  resize: none; /* Запретить пользователю изменять размер вручную */
+
+  /* !!! УБРАТЬ min-height и max-height !!! */
+  /* min-height: calc(1.4em + 4px + 2px); */ /* <-- УДАЛИТЬ */
+  /* max-height: calc(6 * 1.4em + 4px + 2px); */ /* <-- УДАЛИТЬ */
+
+  /* !!! Установить overflow-y: hidden по умолчанию !!! */
+  /* JS будет менять на 'auto' при достижении макс. высоты */
+  overflow-y: hidden;
+  /* Начальную высоту установит JS, можно задать маленькую базу */
+  height: auto; /* Или можно оставить для начального расчета */
+}
+
+/* ... (остальные стили) ... */

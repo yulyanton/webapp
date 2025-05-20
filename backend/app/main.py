@@ -5,6 +5,8 @@ from contextlib import asynccontextmanager
 from .routers import notes
 from .database import create_indexes, client as mongo_client
 from .config import settings
+from fastapi.middleware.cors import CORSMiddleware
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -22,6 +24,19 @@ app = FastAPI(
     description="A simple backend for a notes application using Python, FastAPI, and MongoDB.",
     version="1.0.0",
     lifespan=lifespan
+)
+
+origins = [
+    "http://localhost:3000", # Your React app
+    "*"
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 app.include_router(notes.router, prefix="/api/v1")
