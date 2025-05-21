@@ -3,6 +3,7 @@ import React from 'react';
 import {
     ICON_TASK, ICON_TASK_DONE, ICON_PLUS, ICON_MINUS
 } from '../constants';
+import {useNavigate} from "react-router-dom";
 
 function TaskItem({
                       task,
@@ -15,6 +16,7 @@ function TaskItem({
         text,
         completed // Это поле уже называется 'completed' для подзадач
     }));
+    const navigate = useNavigate();
 
     const hasSubtasks = subtasksArray.length > 0;
     const completedSubtasksCount = subtasksArray.filter(s => s.completed).length;
@@ -26,6 +28,11 @@ function TaskItem({
         cursor: 'pointer',
         opacity: 0.7,
     };
+
+    function handleTaskClick() {
+        navigate(`/edit-task/${task.id}`);
+        console.log('task clicked', task);
+    }
 
     return (
         <div
@@ -40,7 +47,7 @@ function TaskItem({
                     onClick={() => !task.is_deleted && onToggleTask(taskIndex)}
                 />
                 <div className="task-body">
-          <span className="task-text" style={{ whiteSpace: 'pre-wrap', cursor: 'default' }}>
+          <span className="task-text" onClick={handleTaskClick} style={{ whiteSpace: 'pre-wrap', cursor: 'default' }}>
             {task.text || "Нет текста задачи"}
           </span>
                 </div>
@@ -49,7 +56,7 @@ function TaskItem({
             {hasSubtasks && task.subtasksVisible && subtasksArray.map((subtask, sIndex) => (
                 <div
                     key={`${task.id}-sub-${subtask.text.replace(/\s+/g, '-')}-${sIndex}`}
-                    className={`subtasks ${subtask.completed ? 'completed' : ''}`} // Подзадачи уже используют 'completed'
+                    className={`subtasks-main ${subtask.completed ? 'completed' : ''}`} // Подзадачи уже используют 'completed'
                 >
                     <img
                         src={subtask.completed ? ICON_TASK_DONE : ICON_TASK}

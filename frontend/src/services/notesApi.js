@@ -27,23 +27,30 @@ export const mapToBackendNoteCreate = (taskData, userId) => { // taskData теп
         user_id: userId,
         text: taskData.text,
         subtasks: backendSubtasks,
-        due_date: taskData.date || null,
+        due_date: taskData.due_date || null,
+        reminder_date: taskData.reminder_date || null,
         complete: taskData.complete || false, // Используем taskData.complete
     };
 };
 
-export const mapToBackendNoteUpdate = (taskChanges) => { // taskChanges теперь будет содержать { ..., complete: boolean, ... }
+export const mapToBackendNoteUpdate = (taskChanges) => {
     const backendUpdate = {};
     if (taskChanges.text !== undefined) backendUpdate.text = taskChanges.text;
 
     if (taskChanges.subtasksArray !== undefined && Array.isArray(taskChanges.subtasksArray)) {
-        // ... (логика для subtasksArray)
+        const backendSubtasks = {};
+        taskChanges.subtasksArray.forEach(sub => {
+            if (sub.text && sub.text.trim() !== "") {
+                backendSubtasks[sub.text.trim()] = sub.completed || false;
+            }
+        });
+        backendUpdate.subtasks = backendSubtasks;  // Update all subtasks based on the array
     } else if (taskChanges.subtasks !== undefined) {
-        backendUpdate.subtasks = taskChanges.subtasks;
+        backendUpdate.subtasks = taskChanges.subtasks; // Update with existing subtasks object
     }
 
-    if (taskChanges.date !== undefined) backendUpdate.due_date = taskChanges.date;
-    if (taskChanges.complete !== undefined) backendUpdate.complete = taskChanges.complete; // Используем taskChanges.complete
+    if (taskChanges.date !== undefined || taskChanges.due_date !== undefined) backendUpdate.due_date = taskChanges.due_date ? taskChanges.due_date : taskChanges.date;
+    if (taskChanges.complete !== undefined) backendUpdate.complete = taskChanges.complete;
 
     return backendUpdate;
 };

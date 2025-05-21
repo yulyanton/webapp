@@ -4,12 +4,14 @@ import TaskList from '../components/TaskList';
 import AddTaskButton from '../components/AddTaskButton';
 import { ICON_MENU, USER_ID } from '../constants';
 import * as notesApi from '../services/notesApi';
+import {Link, useNavigate} from "react-router-dom";
 
 function MainPage() {
     const [tasks, setTasks] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
     const [showCompletedTasks, setShowCompletedTasks] = useState(true); // Состояние для завершенных
+    const navigate = useNavigate();
 
     const mapBackendNoteToFrontendTask = useCallback((note) => {
         const subtasksArray = Object.entries(note.subtasks || {}).map(([text, completed]) => ({
@@ -48,7 +50,6 @@ function MainPage() {
 
     // Обработчики ожидают индекс из списка activeTasks (неудаленные задачи)
     const handleUpdateTaskFields = useCallback(async (taskId, changesForBackend) => {
-        // ... (без изменений, находит задачу по taskId)
         const originalTasks = JSON.parse(JSON.stringify(tasks));
         setTasks(prevTasks => prevTasks.map(t => {
             if (t.id === taskId) {
@@ -116,7 +117,8 @@ function MainPage() {
 
     const handleNavigateToAddTaskPage = () => {
         console.log("Переход на страницу добавления задачи (реализовать навигацию)");
-        alert("Функционал добавления задачи будет на отдельной странице.");
+        // alert("Функционал добавления задачи будет на отдельной странице.");
+        navigate('/add-task');
     };
 
     if (isLoading) return <p style={{ textAlign: 'center', marginTop: '50px' }}>Загрузка задач...</p>;
@@ -129,7 +131,10 @@ function MainPage() {
 
     return (
         <>
-            <img src={ICON_MENU} alt="Меню" className="menu-icon" />
+            <Link to={'/settings'}>
+                <img src={ICON_MENU} alt="Меню" className="menu-icon"/>
+
+            </Link>
             {error && <p style={{ textAlign: 'center', color: 'red', background: '#500', padding: '10px', margin: '10px' }}>{error}</p>}
             {/*<div style={{ textAlign: 'center', margin: '10px 0 20px 0', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '20px' }}>*/}
             {/*    <button onClick={loadTasks} style={{padding: '8px 15px', cursor: 'pointer', background: '#4a4a4a', color: '#ddd', border:'1px solid #666', borderRadius: '5px'}}>*/}

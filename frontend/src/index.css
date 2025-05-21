@@ -2,11 +2,21 @@
 ::-webkit-scrollbar {
   width: 0;
 }
+
+html, body { /* Add these to ensure 100% height */
+  height: 100%;
+  overflow: hidden;
+}
 body {
   background-color: #242424;
   font-family: 'Montserrat', sans-serif; /* Ensure Montserrat is loaded or use a fallback */
   margin: 0;
   color: #D5D5D5; /* Default text color */
+}
+
+#root {
+  height: 100%; /* Use 100% height here */
+  width: 100%;
 }
 
 /* Menu Icon (positioning only) */
@@ -79,7 +89,7 @@ body {
 
 
 /* Subtasks */
-.subtasks {
+.subtasks-main {
   display: flex;
   align-items: center;
   font-size: 0.9em;
@@ -90,21 +100,21 @@ body {
   transition: opacity 0.3s ease; /* Smooth transition */
 }
 
-.subtasks img {
+.subtasks-main img {
   width: 20px;
   height: 20px;
   cursor: pointer;
   transition: opacity 0.3s ease;
 }
-.subtasks img:hover {
+.subtasks-main img:hover {
   opacity: 0.8;
 }
 
-.subtasks span {
+.subtasks-main span {
   cursor: pointer;
   flex-grow: 1;
 }
-.subtasks span:hover {
+.subtasks-main span:hover {
   opacity: 0.8;
 }
 
@@ -184,35 +194,3 @@ body {
 .subtasks.completed > img:first-of-type {
   opacity: 0.6;
 }
-
-/* Editing Input Field */
-/* style.css */
-/* ... (предыдущие стили) ... */
-
-/* Editing Input Field (теперь это textarea) */
-.edit-input {
-  width: 100%;
-  box-sizing: border-box;
-  background-color: #555;
-  color: #eee;
-  border: 1px solid #777;
-  padding: 2px 4px;
-  font-family: inherit;
-  font-size: inherit;
-  line-height: 1.4; /* Остается важным для расчетов */
-  border-radius: 3px;
-  outline: none;
-  resize: none; /* Запретить пользователю изменять размер вручную */
-
-  /* !!! УБРАТЬ min-height и max-height !!! */
-  /* min-height: calc(1.4em + 4px + 2px); */ /* <-- УДАЛИТЬ */
-  /* max-height: calc(6 * 1.4em + 4px + 2px); */ /* <-- УДАЛИТЬ */
-
-  /* !!! Установить overflow-y: hidden по умолчанию !!! */
-  /* JS будет менять на 'auto' при достижении макс. высоты */
-  overflow-y: hidden;
-  /* Начальную высоту установит JS, можно задать маленькую базу */
-  height: auto; /* Или можно оставить для начального расчета */
-}
-
-/* ... (остальные стили) ... */
