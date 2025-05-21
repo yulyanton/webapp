@@ -2,10 +2,11 @@ import React, {useEffect, useRef, useState} from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import './AddTaskPage.css';
 import * as notesApi from '../services/notesApi';
-import { USER_ID } from '../constants';
 import {ICON_TASK} from '../constants';
+import {initData} from "@telegram-apps/sdk-react";
 
 function AddTaskPage() {
+    const USER_ID = initData.user().id;
     const [taskText, setTaskText] = useState('');
     const [reminder, setReminder] = useState(null);
     const [dueDate, setDueDate] = useState(null);

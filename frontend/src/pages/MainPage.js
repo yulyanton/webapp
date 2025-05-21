@@ -2,11 +2,16 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import TaskList from '../components/TaskList';
 import AddTaskButton from '../components/AddTaskButton';
-import { ICON_MENU, USER_ID } from '../constants';
+import { ICON_MENU } from '../constants';
 import * as notesApi from '../services/notesApi';
 import {Link, useNavigate} from "react-router-dom";
 
+import {init, initData} from "@telegram-apps/sdk";
 function MainPage() {
+    init();
+    initData.restore()
+    const USER_ID = initData.user().id;
+    console.log(USER_ID);
     const [tasks, setTasks] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);

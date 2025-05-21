@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import './TrashPage.css';
-import * as notesApi from '../services/notesApi';
-import { USER_ID } from '../constants';
+import * as notesApi from '../services/notesApi';import {initData} from "@telegram-apps/sdk-react";
+
 
 function TrashPage() {
+    const USER_ID = initData.user().id;
     const [deletedNotes, setDeletedNotes] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
